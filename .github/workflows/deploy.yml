@@ -1,98 +1,96 @@
 name: Deploy Application
 
 on:
-    workflow_dispatch:
-    workflow_run:
-        workflows: ["Terraform"]
-        types:
-            - completed
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Terraform"]
+    types:
+        - completed
 
 jobs:
-    deploy:
-        runs-on: ubuntu-latest
+  deploy:
+    runs-on: ubuntu-latest
 
-        permissions:
-            id-token: write
-            contents: read
+    permissions:
+        id-token: write
+        contents: read
 
-        env:
-            AWS_REGION: us-east-1
-            ACCOUNT_ID: 749929394992
+    env:
+        AWS_REGION: us-east-1
+        ACCOUNT_ID: 749929394992
 
         steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
+          - name: Checkout code
+            uses: actions/checkout@v4
 
-            - name: Configure AWS Credentials
-              uses: aws-actions/configure-aws-credentials@v3
-              with:
-                aws-region: ${{ env.AWS_REGION }}
-                role-to-assume: arn:aws:iam::${{ env.ACCOUNT_ID }}:role/gh-actions-role
+          - name: Configure AWS Credentials
+            uses: aws-actions/configure-aws-credentials@v3
+            with:
+              aws-region: ${{ env.AWS_REGION }}
+              role-to-assume: arn:aws:iam::${{ env.ACCOUNT_ID }}:role/gh-actions-role
 
-            - name: Setup Terraform
-              uses: hashicorp/setup-terraform@v2
+          - name: Setup Terraform
+            uses: hashicorp/setup-terraform@v2
 
-            - name: Get EC2 IP from Terraform state
-              id: get_ip
-              run: |
-                cd aws-infra
-                terraform init --input=false -no-color
-                APP_IP=$(terraform output -raw todo_public_ip 2>/dev/null | head -n 1 | tr -d '\r')
-                echo "APP_IP=$APP_IP" >> $GITHUB_ENV
+          - name: Get EC2 IP from Terraform state
+            id: get_ip
+            run: |
+              cd aws-infra
+              terraform init --input=false -no-color
+              APP_IP=$(terraform output -raw todo_public_ip 2>/dev/null | head -n 1 | tr -d '\r')
+              echo "APP_IP=$APP_IP" >> $GITHUB_ENV
 
-            - name: Login to Amazon ECR
-              id: login-ecr
-              uses: aws-actions/amazon-ecr-login@v2
-#              run: aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ AWS_REGION }}.amazonaws.com
+          - name: Login to Amazon ECR
+            id: login-ecr
+            uses: aws-actions/amazon-ecr-login@v2
 
+          - name: Build and Push Client Image
+            run: |
+              cd Todo-app
+              docker build -t adeife/todo-client . ./client
+              docker tag adeife/todo-client:v1 ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/adeife/todo-client:v1
+              docker push ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/adeife/todo-client:v1
 
-            - name: Build and Push Client Image
-              run: |
-                cd Todo-app
-                docker build -t adeife/todo-client . ./client
-                docker tag adeife/todo-client:v1 ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/adeife/todo-client:v1
-                docker push ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/adeife/todo-client:v1
+          - name: Build and Push Backend Image
+            run: |
+              cd Todo-app
+              docker build -t adeife/todo-backend . ./backend
+              docker tag adeife/todo-backend:v1 ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/adeife/todo-backend:v1
+              docker push ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/adeife/todo-backend:v1
 
-            - name: Build and Push Backend Image
-              run: |
-                cd Todo-app
-                docker build -t adeife/todo-backend . ./backend
-                docker tag adeife/todo-backend:v1 ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/adeife/todo-backend:v1
-                docker push ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/adeife/todo-backend:v1
+          - name: Setup SSH Key
+            run: |
+              mkdir -p ~/.ssh
+              echo "${{ secrets.DEMO_SSH_KEY }}" > ~/.ssh/id_rsa
+              chmod 600 ~/.ssh/id_rsa
 
-            - name: Setup SSH Key
-              run: |
-                mkdir -p ~/.ssh
-                echo "${{ secrets.DEMO_SSH_KEY }}" > ~/.ssh/id_rsa
-                chmod 600 ~/.ssh/id_rsa
+          - name: Deploy App to EC2 via SSH
+            uses: appleboy/ssh-action@v1.0.3
+            with:
+              host: ${{ env.APP_IP }}
+              username: ec2-user
+              key: ${{ secrets.DEMO_SSH_KEY }}
+              script: |
+                echo "Successfully connected to instance"
+                sudo yum update -y || true
 
-            - name: Deploy App to EC2 via SSH
-              uses: appleboy/ssh-action@v1.0.3
-              with:
-                host: ${{ env.APP_IP }}
-                username: ec2-user
-                key: ${{ secrets.DEMO_SSH_KEY }}
-                script: |
-                  echo "Successfully connected to instance"
-                  sudo yum update -y || true
+                sudo amazon-linux-extras enable docker
+                sudo yum install -y docker || true
 
-                  sudo amazon-linux-extras enable docker
-                  sudo yum install -y docker || true
+                sudo systemctl start docker
+                sudo systemctl enable docker
 
-                  sudo systemctl start docker
-                  sudo systemctl enable docker
+                sudo usermod -aG docker ec2-user || true
 
-                  sudo usermod -aG docker ec2-user || true
+                sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 
-                  sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+                sudo chmod +x /usr/local/bin/docker-compose
+                sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose || true
 
-                  sudo chmod +x /usr/local/bin/docker-compose
-                  sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose || true
+                aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ AWS_REGION }}.amazonaws.com
+                sudo docker-compose down || true
+                sudo docker-compose pull
+                sudo docker-compose up -d 
 
-                  aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ AWS_REGION }}.amazonaws.com
-                  sudo docker-compose down || true
-                  sudo docker-compose pull
-                  sudo docker-compose up -d 
-
-                  echo "Todo App deployed successfully"
-                  echo "App running on http://${{ env.APP_IP }}:8095"
+                echo "Todo App deployed successfully"
+                echo "App running on http://${{ env.APP_IP }}:8095"
