@@ -47,15 +47,15 @@ jobs:
         run: |
           cd Todo-app
           docker build -t adeife/todo-client . ./client
-          docker tag adeife/todo-client:v1 749929394992.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/adeife/todo-client:v1
-          docker push 749929394992.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/adeife/todo-client:v1
+          docker tag adeife/todo-client:v1 749929394992.dkr.ecr.us-east-1.amazonaws.com/adeife/todo-client:v1
+          docker push 749929394992.dkr.ecr.us-east-1.amazonaws.com/adeife/todo-client:v1
 
       - name: Build and Push Backend Image
         run: |
           cd Todo-app
           docker build -t adeife/todo-backend . ./backend
-          docker tag adeife/todo-backend:v1 749929394992.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/adeife/todo-backend:v1
-          docker push 749929394992.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/adeife/todo-backend:v1
+          docker tag adeife/todo-backend:v1 749929394992.dkr.ecr.us-east-1.amazonaws.com/adeife/todo-backend:v1
+          docker push 749929394992.dkr.ecr.us-east-1.amazonaws.com/adeife/todo-backend:v1
 
       - name: Setup SSH Key
         run: |
@@ -86,7 +86,7 @@ jobs:
             sudo chmod +x /usr/local/bin/docker-compose
             sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose || true
 
-            aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ AWS_REGION }}.amazonaws.com
+            aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ AWS_REGION }}.amazonaws.com
             sudo docker-compose down || true
             sudo docker-compose pull
             sudo docker-compose up -d 
