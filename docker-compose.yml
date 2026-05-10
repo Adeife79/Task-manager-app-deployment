@@ -1,0 +1,26 @@
+version: '3.9'
+services:
+  backend:
+    image: adeife08/todo-backend:v3
+    container_name: todo-backend-server
+    ports:
+      - "8094:8094"
+    environment:
+      - PORT=8094
+      - MONGO_URI=mongodb://mongo:27017/todoapp
+    depends_on:
+      - mongo
+
+  client:
+    image: adeife08/todo-client:v3
+    container_name: todo-client-server
+    ports:
+      - "8095:8095"
+    depends_on:
+      - backend
+
+  mongo:
+    image: mongo:7
+    container_name: todo-mongo
+    ports:
+      - "27017:27017"
