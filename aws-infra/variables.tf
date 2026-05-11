@@ -76,6 +76,3 @@ variable "client_ecr_repo_name" {
 variable "backend_ecr_repo_name" {
     description = "ECR Repository for Backend Docker Image"
     type = string
-}
-
-44.222.148.41
