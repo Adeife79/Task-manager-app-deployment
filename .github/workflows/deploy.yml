@@ -47,14 +47,14 @@ jobs:
       - name: Build and Push Client Image
         working-directory: ./Todo-app/client
         run: |
-          docker build -t adeife/todo-client .
+          docker build -t adeife/todo-client:v1 .
           docker tag adeife/todo-client:v1 749929394992.dkr.ecr.us-east-1.amazonaws.com/adeife/todo-client:v1
           docker push 749929394992.dkr.ecr.us-east-1.amazonaws.com/adeife/todo-client:v1
 
       - name: Build and Push Backend Image
         working-directory: ./Todo-app/backend
         run: |
-          docker build -t adeife/todo-backend .
+          docker build -t adeife/todo-backend:v1 .
           docker tag adeife/todo-backend:v1 749929394992.dkr.ecr.us-east-1.amazonaws.com/adeife/todo-backend:v1
           docker push 749929394992.dkr.ecr.us-east-1.amazonaws.com/adeife/todo-backend:v1
 
