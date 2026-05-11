@@ -1,7 +1,7 @@
 version: '3.9'
 services:
   backend:
-    image: adeife08/todo-backend:v3
+    image: 749929394992.dkr.ecr.us-east-1.amazonaws.com/adeife/todo-backend:v1
     container_name: todo-backend-server
     ports:
       - "8094:8094"
@@ -12,7 +12,7 @@ services:
       - mongo
 
   client:
-    image: adeife08/todo-client:v3
+    image: 749929394992.dkr.ecr.us-east-1.amazonaws.com/adeife/todo-client:v1
     container_name: todo-client-server
     ports:
       - "8095:8095"
