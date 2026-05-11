@@ -87,7 +87,7 @@ jobs:
             sudo chmod +x /usr/local/bin/docker-compose
             sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose || true
 
-            aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ AWS_REGION }}.amazonaws.com
+            aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 749929394992.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
             sudo docker-compose down || true
             sudo docker-compose pull
             sudo docker-compose up -d 
