@@ -92,4 +92,3 @@ jobs:
             sudo docker-compose up -d 
 
             echo "Todo App deployed successfully"
-            echo "App running on http://${{ env.APP_IP }}:8095"
