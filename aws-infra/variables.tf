@@ -58,6 +58,11 @@ variable "backend_port" {
     type = string
 }
 
+variable "mongo_port" {
+    description = "Mongo Port"
+    type = string
+}
+
 variable "ec2_ami" {
     description = "AMI ID For App Instance"
     type = string
@@ -72,3 +77,5 @@ variable "backend_ecr_repo_name" {
     description = "ECR Repository for Backend Docker Image"
     type = string
 }
+
+44.222.148.41
