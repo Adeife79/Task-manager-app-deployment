@@ -66,12 +66,19 @@ jobs:
           echo "${{ secrets.DEMO_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
+      - name: Get ECR login password
+        id: ecr-password
+        run: |
+          ECR_PASSWORD=$(aws ecr get-login-password --region ${{ env.AWS_REGION }})
+          echo "ECR_PASSWORD=$ECR_PASSWORD" >> $GITHUB_ENV
+
       - name: Deploy App to EC2 via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ env.APP_IP }}
           username: ec2-user
           key: ${{ secrets.DEMO_SSH_KEY }}
+          envs: ECR_PASSWORD, AWS_REGION
           script: |
             echo "Successfully connected to instance"
             sudo yum update -y || true
@@ -89,7 +96,9 @@ jobs:
             sudo chmod +x /usr/local/bin/docker-compose
             sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose || true
 
-            aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 749929394992.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+            echo "$ECR_PASSWORD" |sudo docker login --username AWS --password-stdin 749929394992.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+
+            cd /home/ec2-user/app
             sudo docker-compose down || true
             sudo docker-compose pull
             sudo docker-compose up -d 
