@@ -53,6 +53,11 @@ variable "app_port" {
     type = string
 }
 
+variable "backend_port" {
+    description = "Backend Port"
+    type = string
+}
+
 variable "ec2_ami" {
     description = "AMI ID For App Instance"
     type = string
