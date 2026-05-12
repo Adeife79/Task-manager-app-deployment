@@ -1,7 +1,6 @@
-version: '3.9'
 services:
   backend:
-    image: 749929394992.dkr.ecr.us-east-1.amazonaws.com/adeife/todo-backend:v1
+    image: 749929394992.dkr.ecr.us-east-1.amazonaws.com/adeife/todo-backend:v4
     container_name: todo-backend-server
     ports:
       - "8094:8094"
@@ -12,15 +11,17 @@ services:
       - mongo
 
   client:
-    image: 749929394992.dkr.ecr.us-east-1.amazonaws.com/adeife/todo-client:v1
+    image: 749929394992.dkr.ecr.us-east-1.amazonaws.com/adeife/todo-client:v4
     container_name: todo-client-server
     ports:
       - "8095:8095"
+    environment:
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:8094}
     depends_on:
       - backend
 
   mongo:
-    image: mongo:7
+    image: mongo:7.0
     container_name: todo-mongo
     ports:
       - "27017:27017"
