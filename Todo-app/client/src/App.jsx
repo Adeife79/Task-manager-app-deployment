@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import TaskForm from './components/TaskForm';
 import TaskList from './components/TaskList';
 
-const API_URL = 'http://44.222.148.41/:8094/api/tasks';
+const API_URL = `${import.meta.env.VITE_API_URL || 'http://localhost:8094'}/api/tasks`;
 
 function App() {
   const [tasks, setTasks] = useState([]);
