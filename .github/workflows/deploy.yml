@@ -108,8 +108,10 @@ jobs:
             echo "$ECR_PASSWORD" |sudo docker login --username AWS --password-stdin 749929394992.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
 
             cd /home/ec2-user/app
+            export VITE_API_URL=http://${{ env.EC2_IP }}:8094
+
             sudo docker-compose down || true
             sudo docker-compose pull
-            sudo docker-compose up -d 
+            sudo docker-compose up -d --build
 
             echo "Todo App deployed successfully"
