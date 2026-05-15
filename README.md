@@ -2,10 +2,7 @@
 
 A full-stack Todo application built with React, Node.js, Express, MongoDB, Docker, GitHub Actions CI/CD, AWS ECR, EC2, and Terraform.
 
- ---
- ## Introduction
-
- 
+---
 
  ## Features
  - Create tasks
@@ -192,6 +189,7 @@ mkdir docker-compose.yml
 ```
 6. Install Mongo dependencies:
 ```bash
+npm install express mongoose cors dotenv
 ```
 7. Run docker compose to start the backend server, frontend server, and the mongodb:
 ```bash
@@ -265,6 +263,7 @@ Copy docker-compose.yml file to EC2
 Deploys app to EC2 via SSH
 ```
 ---
+
 ## Contributions
 Contributions to this project are welcome!
 
