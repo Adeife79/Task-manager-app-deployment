@@ -7,4 +7,8 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 8095,
   },
+  preview: {
+    host: '0.0.0.0',
+    port: 8095,
+  },
 });

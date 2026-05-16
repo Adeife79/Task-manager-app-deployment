@@ -5,19 +5,18 @@ on:
   workflow_run:
     workflows: ["Terraform"]
     types:
-        - completed
+      - completed
 
 env:
   AWS_REGION: us-east-1
-
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     permissions:
-        id-token: write
-        contents: read
+      id-token: write
+      contents: read
 
     steps:
       - name: Checkout code
@@ -49,7 +48,9 @@ jobs:
       - name: Build and Push Client Image
         working-directory: ./Todo-app/client
         run: |
-          docker build -t adeife/todo-client:v4 .
+          docker build \
+            --build-arg VITE_API_URL=http://${{ env.APP_IP }}:8094 \
+            -t adeife/todo-client:v4 .
           docker tag adeife/todo-client:v4 749929394992.dkr.ecr.us-east-1.amazonaws.com/adeife/todo-client:v4
           docker push 749929394992.dkr.ecr.us-east-1.amazonaws.com/adeife/todo-client:v4
 
